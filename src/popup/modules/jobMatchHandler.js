@@ -1,4 +1,4 @@
-import { JobMatch, analyzeJobDescription, generateTailoredResume, generateCoverLetter } from './jobMatcher.js';
+import { JobMatch, analyzeJobDescription, generateTailoredResume } from './jobMatcher.js';
 import { generateResumeContent } from './resumeGenerator.js';
 
 // Add this function near the top of the file
@@ -173,46 +173,6 @@ export async function initializeJobMatching() {
     }
   });
 
-  // Add loading state and error handling to cover letter generation
-  document.getElementById('generateCoverLetter').addEventListener('click', async () => {
-    const button = document.getElementById('generateCoverLetter');
-    const preview = document.getElementById('coverLetterPreview');
-
-    try {
-      button.disabled = true;
-      button.textContent = 'Generating...';
-      preview.innerHTML = '<div class="loading">Generating cover letter...</div>';
-
-      const { profile } = await chrome.storage.local.get(['profile']);
-      const coverLetter = await generateCoverLetter(profile, jobMatch);
-
-      preview.innerHTML = `
-              <div class="cover-letter-content">
-                  <div class="cover-letter-header">
-                      <h3>Cover Letter for ${jobMatch.jobTitle}</h3>
-                      <button class="btn-copy" data-content-id="coverLetterContent">Copy</button>
-                  </div>
-                  <div id="coverLetterContent">${coverLetter}</div>
-              </div>`;
-
-      // Add copy button event listener
-      preview.querySelector('.btn-copy').addEventListener('click', async () => {
-        const content = document.getElementById('coverLetterContent').textContent;
-        try {
-          await navigator.clipboard.writeText(content);
-          alert('Copied to clipboard!');
-        } catch (err) {
-          alert('Failed to copy: ' + err.message);
-        }
-      });
-    } catch (error) {
-      preview.innerHTML = `<div class="error-message">${error.message}</div>`;
-    } finally {
-      button.disabled = false;
-      button.textContent = 'Generate Cover Letter';
-    }
-  });
-
   // Add copy to clipboard functionality
   window.copyToClipboard = async function (elementId) {
     const content = document.getElementById(elementId).textContent;
@@ -224,79 +184,88 @@ export async function initializeJobMatching() {
     }
   };
 
+  // Remove the cover letter event listener
   document.getElementById('generateTailoredResume').addEventListener('click', async () => {
-    const button = document.getElementById('generateTailoredResume');
-    const statusDiv = document.createElement('div');
-    statusDiv.className = 'generation-status';
-    button.parentNode.insertBefore(statusDiv, button.nextSibling);
-
-    try {
-        button.disabled = true;
-        statusDiv.textContent = 'Generating tailored resume...';
-
-        // Collect keyword ratings and customizations
-        const keywordItems = document.querySelectorAll('.keyword-item');
-        const keywordData = [];
-        keywordItems.forEach(item => {
-            const word = item.querySelector('.keyword-word').textContent;
-            const rating = parseInt(item.querySelector('input[type="range"]').value);
-            const customization = item.querySelector('.keyword-customization').value;
-            keywordData.push({ word, rating, customization });
-            jobMatch.setKeywordRating(word, rating, customization);
-        });
-
-        console.log('Sending request to generate tailored resume:', {
-            jobTitle: jobMatch.jobTitle,
-            jobDescription: jobMatch.jobDescription,
-            keywords: keywordData
-        });
-
-        // Save state before generating
-        await jobMatch.saveState();
-
-        const { profile } = await chrome.storage.local.get(['profile']);
-        const tailoredProfile = await generateTailoredResume(profile, jobMatch);
-
-        console.log('Received tailored profile response:', tailoredProfile);
-
-        // Save tailored resume
-        const { tailoredResumes = [] } = await chrome.storage.local.get(['tailoredResumes']);
-        tailoredResumes.push({
-            jobTitle: jobMatch.jobTitle,
-            jobDescription: jobMatch.jobDescription,
-            profile: tailoredProfile,
-            keywords: jobMatch.keywords,
-            timestamp: new Date().toISOString()
-        });
-        await chrome.storage.local.set({ tailoredResumes });
-
-        statusDiv.textContent = 'Resume generated successfully!';
-        statusDiv.style.color = 'green';
-        updateTailoredResumesList();
-
-        // Automatically preview the newly generated resume
-        const newIndex = tailoredResumes.length - 1;
-        await previewTailoredResume(newIndex);
-    } catch (error) {
-        console.error('Error generating tailored resume:', error);
-        statusDiv.textContent = 'Error: ' + error.message;
-        statusDiv.style.color = 'red';
-    } finally {
-        button.disabled = false;
-        setTimeout(() => statusDiv.remove(), 5000);
-    }
+      const button = document.getElementById('generateTailoredResume');
+      const statusDiv = document.createElement('div');
+      statusDiv.className = 'generation-status';
+      button.parentNode.insertBefore(statusDiv, button.nextSibling);
+  
+      try {
+          console.log('=== Starting Tailored Resume Generation ===');
+          button.disabled = true;
+          statusDiv.textContent = 'Generating tailored resume...';
+  
+          // Collect keyword ratings and customizations
+          const keywordItems = document.querySelectorAll('.keyword-item');
+          const keywordData = [];
+          keywordItems.forEach(item => {
+              const word = item.querySelector('.keyword-word').textContent;
+              const rating = parseInt(item.querySelector('input[type="range"]').value);
+              const customization = item.querySelector('.keyword-customization').value;
+              keywordData.push({ word, rating, customization });
+              jobMatch.setKeywordRating(word, rating, customization);
+          });
+  
+          console.log('Sending request to generate tailored resume:', {
+              jobTitle: jobMatch.jobTitle,
+              jobDescription: jobMatch.jobDescription,
+              keywords: keywordData
+          });
+  
+          // Save state before generating
+          await jobMatch.saveState();
+  
+          const { profile } = await chrome.storage.local.get(['profile']);
+          const result = await generateTailoredResume(profile, jobMatch);
+          
+          // Save tailored resume
+          const { tailoredResumes = [] } = await chrome.storage.local.get(['tailoredResumes']);
+          tailoredResumes.push({
+              jobTitle: jobMatch.jobTitle,
+              jobDescription: jobMatch.jobDescription,
+              profile: result,
+              keywords: jobMatch.keywords,
+              timestamp: new Date().toISOString()
+          });
+          await chrome.storage.local.set({ tailoredResumes });
+  
+          statusDiv.textContent = 'Resume generated successfully!';
+          statusDiv.style.color = 'green';
+          updateTailoredResumesList();
+  
+          // Preview the newly generated content
+          const newIndex = tailoredResumes.length - 1;
+          await previewTailoredResume(newIndex);
+      } catch (error) {
+          console.error('Error generating content:', error);
+          statusDiv.textContent = 'Error: ' + error.message;
+          statusDiv.style.color = 'red';
+      } finally {
+          button.disabled = false;
+          setTimeout(() => statusDiv.remove(), 5000);
+      }
   });
-
-  document.getElementById('generateCoverLetter').addEventListener('click', async () => {
-    try {
-      const profile = await chrome.storage.local.get(['profile']);
-      const coverLetter = await generateCoverLetter(profile, jobMatch);
-      document.getElementById('coverLetterPreview').innerHTML =
-        `<div class="cover-letter-content">${coverLetter}</div>`;
-    } catch (error) {
-      alert('Error generating cover letter: ' + error.message);
-    }
-  });
+  
+  // Remove the generateCoverLetter event listener
+  
+  // Update preview function to remove cover letter section
+  async function previewTailoredResume(index) {
+      const { tailoredResumes } = await chrome.storage.local.get(['tailoredResumes']);
+      if (tailoredResumes?.[index]) {
+          const resume = tailoredResumes[index];
+          const resumeContent = await generateResumeContent(resume.profile, 'formatted');
+  
+          document.getElementById('resumePreview').innerHTML = `
+              <div class="job-details" style="margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+                  <h3>Tailored for: ${resume.jobTitle || 'Untitled Position'}</h3>
+                  <p><strong>Keywords:</strong> ${resume.keywords.map(k => k.word).join(', ')}</p>
+              </div>
+              ${resumeContent}`;
+  
+          document.getElementById('resumeTab').click();
+      }
+  }
 
   // Add preview and delete functions
   window.previewTailoredResume = async function (index) {

@@ -219,45 +219,4 @@ export async function generateTailoredResume(profile, jobMatch) {
     }
 }
 
-export async function generateCoverLetter(profile, jobMatch) {
-    try {
-        const settings = await chrome.storage.local.get(['apiSettings']);
-        console.log('Generating cover letter for:', {
-            title: jobMatch.jobTitle,
-            company: jobMatch.company,
-            jobId: jobMatch.jobId
-        });
-
-        const response = await fetch(`${settings.apiSettings.apiBaseUrl}/chat/completions`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${settings.apiSettings.deepseekApiKey}`
-            },
-            body: JSON.stringify({
-                messages: [{
-                    role: "user",
-                    content: `Generate a professional cover letter for ${jobMatch.jobTitle} position at ${jobMatch.company}.
-                    
-                    Job Details:
-                    Title: ${jobMatch.jobTitle}
-                    Company: ${jobMatch.company}
-                    ID: ${jobMatch.jobId || 'N/A'}
-                    Description: ${jobMatch.jobDescription}
-                    
-                    Profile: ${JSON.stringify(profile)}
-                    Keywords with Ratings: ${JSON.stringify(jobMatch.keywords)}`
-                }]
-            })
-        });
-
-        const data = await response.json();
-        console.log('Cover letter API response:', data);
-        return data.choices[0].message.content;
-    } catch (error) {
-        console.error('Error generating cover letter:', error);
-        throw error;
-    }
-}
-
 
