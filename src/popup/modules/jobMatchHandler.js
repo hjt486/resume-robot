@@ -142,29 +142,56 @@ export async function initializeJobMatching() {
         throw new Error('Please create a profile first');
       }
 
-      const keywords = await analyzeJobDescription(jobDescription, JSON.stringify(profile));
+      const { jobInfo, keywords } = await analyzeJobDescription(jobDescription, JSON.stringify(profile));
+      
+      // Update job match info and display results
+      jobMatch.updateJobInfo(jobInfo);
+      
+      // Format keywords as objects if they're strings
+      const formattedKeywords = keywords.map(keyword => {
+          return typeof keyword === 'string' 
+              ? { word: keyword, rating: 0, customization: '' }
+              : keyword;
+      });
 
       // Display keywords with rating inputs
       keywordResults.innerHTML = `
-                <div class="keywords-header">
-                    <h3>Found ${keywords.length} keywords to evaluate:</h3>
-                    <p class="keywords-hint">Rate your familiarity with each skill and add details about your experience.</p>
-                </div>
-                ${keywords.map(keyword => `
-                    <div class="keyword-item">
-                        <div class="keyword-word">${keyword}</div>
-                        <div class="keyword-rating">
-                            <label>Familiarity (0-5):</label>
-                            <input type="range" min="0" max="5" value="0" 
-                                onchange="this.nextElementSibling.textContent = this.value">
-                            <span>0</span>
-                        </div>
-                        <textarea class="keyword-customization" 
-                            placeholder="Describe your experience with this skill..."></textarea>
-                    </div>
-                `).join('')}`;
+              <div class="analysis-results">
+                  <div class="job-analysis">
+                      <h3>Job Analysis:</h3>
+                      <p><strong>Title:</strong> ${jobInfo.title}</p>
+                      <p><strong>Company:</strong> ${jobInfo.company}</p>
+                      ${jobInfo.id ? `<p><strong>Job ID:</strong> ${jobInfo.id}</p>` : ''}
+                  </div>
+                  <div class="keywords-header">
+                      <h3>Found ${formattedKeywords.length} keywords to evaluate:</h3>
+                      <p class="keywords-hint">Rate your familiarity with each skill and add details about your experience.</p>
+                  </div>
+                  ${formattedKeywords.map(keyword => `
+                      <div class="keyword-item">
+                          <div class="keyword-word">${keyword.word}</div>
+                          <div class="keyword-rating">
+                              <label>Familiarity (0-5):</label>
+                              <input type="range" min="0" max="5" value="${keyword.rating || 0}" 
+                                  oninput="this.nextElementSibling.textContent = this.value"
+                                  onchange="this.nextElementSibling.textContent = this.value">
+                              <span class="rating-value">${keyword.rating || 0}</span>
+                          </div>
+                          <textarea class="keyword-customization" 
+                              placeholder="Describe your experience with this skill...">${keyword.customization || ''}</textarea>
+                      </div>
+                  `).join('')}
+              </div>`;
+
+      // Add event listeners for range inputs
+      document.querySelectorAll('.keyword-rating input[type="range"]').forEach(input => {
+          input.addEventListener('input', function() {
+              this.nextElementSibling.textContent = this.value;
+          });
+      });
 
       tailoredActions.style.display = 'block';
+      button.textContent = 'Analyze Job Description'; // Reset button text here
     } catch (error) {
       keywordResults.innerHTML = `<div class="error-message">${error.message}</div>`;
     } finally {
