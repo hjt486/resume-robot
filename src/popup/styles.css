@@ -1,0 +1,340 @@
+body {
+    width: 400px;
+    height: 600px;
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    background-color: #2c3e50;
+    color: white;
+    padding: 10px;
+    text-align: center;
+}
+
+.content {
+    padding: 15px;
+}
+
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    border: none;
+    background-color: #eee;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background-color: #2c3e50;
+    color: white;
+}
+
+.section {
+    display: none;
+}
+
+.section.active {
+    display: block;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+input, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+textarea {
+    min-height: 80px;
+    resize: vertical;
+}
+
+.experience-entry {
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.date-range {
+    display: flex;
+    gap: 10px;
+}
+
+button {
+    padding: 8px 16px;
+    background-color: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #34495e;
+}
+
+#addExperience {
+    margin-bottom: 20px;
+}
+
+.preview-container {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-top: 15px;
+    height: 400px;
+    overflow-y: auto;
+    font-family: 'Times New Roman', Times, serif;
+}
+
+.resume-controls {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.job-input {
+    margin-bottom: 20px;
+}
+
+.match-results {
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+}
+
+.match-score {
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.keyword-matches, .missing-skills {
+    margin-top: 15px;
+}
+
+.skill-item {
+    display: inline-block;
+    background: #e1e1e1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    margin: 4px;
+}
+
+.matched {
+    background: #a8e6cf;
+}
+
+.missing {
+    background: #ffb6b6;
+}
+.api-settings {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.api-settings input {
+    margin-bottom: 10px;
+}
+.resume-upload {
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+.resume-upload input[type="file"] {
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+#uploadStatus {
+    margin-top: 10px;
+    padding: 5px;
+    color: #666;
+}
+.resume-text-preview {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    background: white;
+    font-size: 12px;
+    white-space: pre-wrap;
+}
+.resume-file-actions {
+    display: flex;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.resume-file-preview {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+.floating-save {
+    display: none;
+}
+
+#profileSection.active ~ .floating-save {
+    display: block;
+}
+.floating-save {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+    display: none;  /* Hide by default */
+    align-items: center;
+    gap: 10px;
+}
+
+/* Show only when profile section is active */
+.section.active#profileSection ~ .floating-save {
+    display: flex;
+}
+
+.floating-save button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.floating-save button:hover {
+    background-color: #45a049;
+}
+
+.save-status {
+    color: #4CAF50;
+    font-size: 14px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.save-status.show {
+    opacity: 1;
+}
+.danger-zone {
+    margin-top: 2rem;
+    padding-top: 1rem;
+    border-top: 1px solid #ddd;
+}
+
+.danger-zone h3 {
+    color: #dc3545;
+    margin-bottom: 1rem;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+.keyword-item {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.keyword-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 5px 0;
+}
+
+.keyword-customization {
+    width: 100%;
+    margin-top: 5px;
+}
+
+.tailored-resumes-list {
+    margin-top: 20px;
+}
+
+.tailored-resume-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin: 5px 0;
+}
+
+.cover-letter-section,
+.custom-query-section {
+    margin-top: 20px;
+    padding: 15px;
+    border-top: 1px solid #ddd;
+}
+.generation-status {
+    margin-top: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+    text-align: center;
+}
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    margin-top: 20px;
+}
+
+.load-btn {
+    background-color: #28a745;
+    margin: 0 5px;
+}
+
+.resume-actions {
+    display: flex;
+    gap: 5px;
+}
+.jobmatch-only {
+    display: none;
+}
+
+#jobMatchSection.active .jobmatch-only {
+    display: block;
+}
+.save-status {
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.save-status.show {
+    opacity: 1;
+}
+
+.save-status.error {
+    color: #f44336;
+}

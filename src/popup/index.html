@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Resume Robot</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="../lib/pdf.min.js"></script>
+    <script src="../lib/pdf.worker.min.js"></script>
+    <script src="../lib/mammoth.browser.min.js"></script>
+    <script type="module" src="popup.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div class="header">
+            <h1>Resume Robot</h1>
+        </div>
+        <div class="content">
+            <div class="tabs">
+                <button id="profileTab" class="tab-btn active">Profile</button>
+                <button id="resumeTab" class="tab-btn">Resume</button>
+                <button id="jobMatchTab" class="tab-btn">Job Match</button>
+                <button id="settingsTab" class="tab-btn">Settings</button>
+            </div>
+            
+            <div id="profileSection" class="section active">
+                <form id="profileForm">
+                    <h2>Upload Existing Resume</h2>
+                    <!-- Remove API Settings from here and continue with rest of the form -->
+                    <div class="form-group resume-upload">
+                        <input type="file" id="resumeFile" accept=".pdf,.doc,.docx,.txt,.tex">
+                        <div class="resume-file-actions">
+                            <button type="button" id="parseResumeFile">Parse Resume</button>
+                            <button type="button" id="downloadResume" style="display: none;">Download Original</button>
+                            <button type="button" id="previewResume" style="display: none;">Preview Original</button>
+                        </div>
+                        <div id="uploadStatus"></div>
+                    </div>
+
+                    <h2>Personal Information</h2>
+                    <div class="form-group">
+                        <input type="text" id="fullName" name="fullName" placeholder="Full Name" required>
+                        <input type="email" id="email" name="email" placeholder="Email" required>
+                        <input type="tel" id="phone" name="phone" placeholder="Phone">
+                        <input type="text" id="location" name="location" placeholder="Location">
+                        <input type="url" id="website" name="website" placeholder="Personal/Portfolio Website">
+                        <input type="url" id="linkedin" name="linkedin" placeholder="LinkedIn Profile URL">
+                        <textarea id="summary" name="summary" placeholder="Professional Summary"></textarea>
+                    </div>
+                
+                    <h2>Work Experience</h2>
+                    <div id="experienceContainer">
+                        <div class="experience-entry">
+                            <input type="text" name="jobTitle" placeholder="Job Title">
+                            <input type="text" name="company" placeholder="Company">
+                            <input type="text" name="location" placeholder="Location">
+                            <div class="date-range">
+                                <input type="text" name="startDate" placeholder="Start Date">
+                                <input type="text" name="endDate" placeholder="End Date">
+                            </div>
+                            <textarea name="responsibilities" placeholder="Key Responsibilities and Achievements"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" id="addExperience">Add More Experience</button>
+                
+                    <h2>Education</h2>
+                    <div id="educationContainer">
+                        <div class="education-entry">
+                            <input type="text" name="degree" placeholder="Degree">
+                            <input type="text" name="school" placeholder="School">
+                            <input type="text" name="field" placeholder="Field of Study">
+                            <div class="date-range">
+                                <input type="text" name="startDate" placeholder="Start Date">
+                                <input type="text" name="endDate" placeholder="End Date">
+                            </div>
+                            <textarea name="achievements" placeholder="Achievements and Activities"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" id="addEducation">Add More Education</button>
+
+                    <h2>Skills</h2>
+                    <div class="form-group">
+                        <textarea id="skills" name="skills" placeholder="Enter your skills (comma-separated)"></textarea>
+                    </div>
+
+                    <h2>Projects</h2>
+                    <div id="projectsContainer">
+                        <div class="project-entry">
+                            <div class="entry-header">
+                                <button type="button" class="delete-entry" onclick="this.closest('.project-entry').remove()">×</button>
+                            </div>
+                            <input type="text" name="projectName" placeholder="Project Name">
+                            <div class="date-range">
+                                <input type="text" name="startDate" placeholder="Start Date">
+                                <input type="text" name="endDate" placeholder="End Date">
+                            </div>
+                            <textarea name="description" placeholder="Project Description"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" id="addProject">Add More Projects</button>
+                
+                    <h2>Achievements</h2>
+                    <div id="achievementsContainer">
+                        <div class="achievement-entry">
+                            <div class="entry-header">
+                                <button type="button" class="delete-entry" onclick="this.closest('.achievement-entry').remove()">×</button>
+                            </div>
+                            <input type="text" name="achievementName" placeholder="Achievement Name">
+                            <input type="text" name="awardedDate" placeholder="Date Awarded">
+                            <textarea name="description" placeholder="Achievement Description"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" id="addAchievement">Add More Achievements</button>
+                
+                    <h2>Certificates</h2>
+                    <div id="certificatesContainer">
+                        <div class="certificate-entry">
+                            <div class="entry-header">
+                                <button type="button" class="delete-entry" onclick="this.closest('.certificate-entry').remove()">×</button>
+                            </div>
+                            <input type="text" name="certificateName" placeholder="Certificate Name">
+                            <input type="text" name="awardedDate" placeholder="Date Awarded">
+                            <textarea name="description" placeholder="Certificate Description"></textarea>
+                        </div>
+                    </div>
+                    <button type="button" id="addCertificate">Add More Certificates</button>
+                
+                    <button hidden type="submit" >Save Profile</button>
+                </form>
+            </div>
+            
+            <!-- Add new Settings section at the end -->
+            <div id="settingsSection" class="section">
+                <h2>API Settings</h2>
+                <div class="form-group api-settings">
+                    <input type="text" id="deepseekApiKey" name="deepseekApiKey" placeholder="API Key">
+                    <input type="text" id="apiBaseUrl" name="apiBaseUrl" placeholder="API Base URL (default: https://api.deepseek.com/v1)">
+                    <button type="button" id="saveApiSettings">Save API Settings</button>
+                </div>
+                <div class="form-group danger-zone profile-only">
+                    <h3>Danger Zone</h3>
+                    <button type="button" id="clearAllData" class="btn-danger">Clear All Data</button>
+                </div>
+            </div>
+            
+            <!-- Add floating save button -->
+            <div class="floating-save profile-only">
+                <span id="saveStatus" class="save-status"></span>
+                <button type="button" id="floatingSave">Save Profile</button>
+            </div>
+            <div id="resumeSection" class="section">
+                <div class="resume-controls">
+                    <select id="resumeFormat" style="display: none;">
+                        <option value="formatted" selected>Formatted</option>
+                    </select>
+                    <button id="exportPDF" class="btn">Export as PDF</button>
+                </div>
+                <div id="resumePreview" class="preview-container"></div>
+            </div>
+            
+            <div id="jobMatchSection" class="section">
+                <div class="job-input">
+                    <textarea id="jobDescription" placeholder="Paste job description here"></textarea>
+                    <button id="analyzeJob">Analyze Job Match</button>
+                </div>
+                <div id="keywordResults" class="keyword-results">
+                    <!-- Keywords will be dynamically added here -->
+                </div>
+                <div id="tailoredActions" class="tailored-resume-actions" style="display: none;">
+                    <button id="generateTailoredResume">Generate Tailored Resume</button>
+                    <button id="generateCoverLetter">Generate Cover Letter</button>
+                    <div id="coverLetterPreview"></div>
+                    <div class="custom-query-section">
+                        <textarea id="customQuery" placeholder="Ask any questions about the job match..."></textarea>
+                        <button id="submitQuery">Submit Query</button>
+                        <div id="queryResponse"></div>
+                    </div>
+                </div>
+                <div class="floating-save jobmatch-only">
+                    <span id="jobMatchSaveStatus" class="save-status"></span>
+                    <button type="button" id="saveJobMatch">Save Job Match</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
