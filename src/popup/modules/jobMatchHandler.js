@@ -223,6 +223,12 @@ export async function initializeJobMatching() {
           button.disabled = true;
           statusDiv.textContent = 'Generating tailored resume...';
   
+          // Get the current profile first
+          const { profile } = await chrome.storage.local.get(['profile']);
+          if (!profile) {
+              throw new Error('Profile not found. Please create a profile first.');
+          }
+  
           // Collect keyword ratings and customizations
           const keywordItems = document.querySelectorAll('.keyword-item');
           const keywordData = [];
@@ -234,24 +240,27 @@ export async function initializeJobMatching() {
               jobMatch.setKeywordRating(word, rating, customization);
           });
   
-          console.log('Sending request to generate tailored resume:', {
-              jobTitle: jobMatch.jobTitle,
-              jobDescription: jobMatch.jobDescription,
-              keywords: keywordData
-          });
-  
           // Save state before generating
           await jobMatch.saveState();
   
-          const { profile } = await chrome.storage.local.get(['profile']);
+          // Generate tailored resume with the complete profile
           const result = await generateTailoredResume(profile, jobMatch);
           
-          // Save tailored resume
+          // Ensure the result has all required profile fields
+          const tailoredProfile = {
+              ...profile,  // Keep original profile data
+              ...result,   // Override with tailored data
+              email: profile.email || '',  // Ensure email exists
+              phone: profile.phone || '',
+              location: profile.location || ''
+          };
+          
+          // Save tailored resume with complete profile
           const { tailoredResumes = [] } = await chrome.storage.local.get(['tailoredResumes']);
           tailoredResumes.push({
               jobTitle: jobMatch.jobTitle,
               jobDescription: jobMatch.jobDescription,
-              profile: result,
+              profile: tailoredProfile,
               keywords: jobMatch.keywords,
               timestamp: new Date().toISOString()
           });

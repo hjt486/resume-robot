@@ -86,8 +86,8 @@ export async function analyzeJobDescription(jobDescription, profileJson) {
                 }
                 
                 Important: Return ONLY the JSON object, no other text.`
-            }]
-        };
+        }]
+    };
 
     console.log('API Request Payload:', JSON.stringify(payload, null, 2));
 
@@ -112,7 +112,7 @@ export async function analyzeJobDescription(jobDescription, profileJson) {
 
     const data = await response.json();
     console.log('Full API Response:', JSON.stringify(data, null, 2));
-    
+
     if (!data.choices?.[0]?.message?.content) {
         throw new Error('Invalid API response format');
     }
@@ -122,9 +122,9 @@ export async function analyzeJobDescription(jobDescription, profileJson) {
         let content = data.choices[0].message.content.trim();
         content = content.replace(/```json\n?|\n?```/g, ''); // Remove markdown code blocks
         content = content.replace(/^\s+|\s+$/g, ''); // Remove leading/trailing whitespace
-        
+
         const result = JSON.parse(content);
-        
+
         // Validate response structure
         if (!result.jobTitle || !result.company || !Array.isArray(result.keywords)) {
             throw new Error('Invalid response structure from API');
@@ -136,7 +136,7 @@ export async function analyzeJobDescription(jobDescription, profileJson) {
             jobId: result.jobId,
             keywordsCount: result.keywords.length
         });
-        
+
         return {
             jobInfo: {
                 title: result.jobTitle,
@@ -164,17 +164,35 @@ export async function generateTailoredResume(profile, jobMatch) {
             model: "deepseek-chat",
             messages: [{
                 role: "user",
-                content: `Given this job description and profile and Keywords with ratings,
-                if ratings 
-                generate a tailored resume profile in JSON format.
-                
+                content: `Generate both a tailored resume and cover letter based on the following information:
+
                 Job Description: ${jobMatch.jobDescription}
-                Keywords with Ratings: ${JSON.stringify(jobMatch.keywords)}
+                Keywords with Ratings and Customizations: ${JSON.stringify(jobMatch.keywords)}
                 Current Profile: ${JSON.stringify(profile)}
-                
-                Return the response in this exact JSON format:
-                ${JSON.stringify(API_FORMATS.TAILORED_RESUME.response, null, 2)}
-                
+
+                Instructions for Resume Tailoring:
+                1. For keywords with rating >= 1:
+                   - If customization mentions specific experience, add to that experience
+                   - If no specific experience mentioned, add to most recent experience
+                   - Add to skills section
+                   - If appropriate, incorporate into summary
+                2. For keywords with rating = 0:
+                   - Do not add to skills or experience
+                   - Save for cover letter addressing
+
+                Instructions for Cover Letter:
+                1. Address missing skills (rating = 0) by highlighting transferable experience
+                   (e.g., if job requires Azure but candidate knows AWS, highlight cloud expertise)
+                2. Emphasize strongest matches based on highest ratings
+                3. Maintain professional tone and demonstrate enthusiasm for role
+                4. Keep length to one page
+
+                Return response in this format:
+                {
+                    "resume": ${JSON.stringify(API_FORMATS.TAILORED_RESUME.response, null, 2)},
+                    "coverLetter": "Full cover letter text"
+                }
+
                 Important: Return ONLY the JSON object, no markdown formatting.`
             }]
         };
