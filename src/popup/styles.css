@@ -338,3 +338,34 @@ button:hover {
 .save-status.error {
     color: #f44336;
 }
+
+.cover-letter-section {
+    margin-bottom: 30px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.cover-letter-editor {
+    font-family: Arial, sans-serif;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.copy-btn {
+    padding: 8px 16px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.copy-btn:hover {
+    background-color: #45a049;
+}

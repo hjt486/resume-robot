@@ -230,7 +230,18 @@ export async function generateTailoredResume(profile, jobMatch) {
         content = content.replace(/```json\n?|\n?```/g, ''); // Remove markdown code blocks
         content = content.replace(/^\s+|\s+$/g, ''); // Remove leading/trailing whitespace
 
-        return content;
+        // Parse the response
+        const parsedContent = JSON.parse(content);
+        
+        // Validate the response structure
+        if (!parsedContent.resume || !parsedContent.coverLetter) {
+            throw new Error('Invalid response format: missing resume or cover letter');
+        }
+
+        return {
+            profile: parsedContent.resume,
+            coverLetter: parsedContent.coverLetter
+        };
     } catch (error) {
         console.error('Detailed error:', error);
         throw new Error(`Failed to generate tailored resume: ${error.message}`);

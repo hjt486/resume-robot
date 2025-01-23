@@ -202,13 +202,14 @@ export async function initializeJobMatching() {
 
   // Add copy to clipboard functionality
   window.copyToClipboard = async function (elementId) {
-    const content = document.getElementById(elementId).textContent;
-    try {
-      await navigator.clipboard.writeText(content);
-      alert('Copied to clipboard!');
-    } catch (err) {
-      alert('Failed to copy: ' + err.message);
-    }
+      const element = document.getElementById(elementId);
+      const content = element.tagName === 'TEXTAREA' ? element.value : element.textContent;
+      try {
+          await navigator.clipboard.writeText(content);
+          alert('Copied to clipboard!');
+      } catch (err) {
+          alert('Failed to copy: ' + err.message);
+      }
   };
 
   // Remove the cover letter event listener
@@ -255,13 +256,15 @@ export async function initializeJobMatching() {
               location: profile.location || ''
           };
           
-          // Save tailored resume with complete profile
+          // Save tailored resume with complete profile and cover letter
           const { tailoredResumes = [] } = await chrome.storage.local.get(['tailoredResumes']);
           tailoredResumes.push({
               jobTitle: jobMatch.jobTitle,
               jobDescription: jobMatch.jobDescription,
+              company: jobMatch.company,
               profile: tailoredProfile,
               keywords: jobMatch.keywords,
+              coverLetter: result.coverLetter, // Save the cover letter
               timestamp: new Date().toISOString()
           });
           await chrome.storage.local.set({ tailoredResumes });
@@ -295,8 +298,16 @@ export async function initializeJobMatching() {
           document.getElementById('resumePreview').innerHTML = `
               <div class="job-details" style="margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
                   <h3>Tailored for: ${resume.jobTitle || 'Untitled Position'}</h3>
+                  <p><strong>Company:</strong> ${resume.company || 'Unknown Company'}</p>
                   <p><strong>Keywords:</strong> ${resume.keywords.map(k => k.word).join(', ')}</p>
               </div>
+              ${resume.coverLetter ? `
+                  <div class="cover-letter-section">
+                      <h3>Cover Letter</h3>
+                      <textarea id="coverLetterText" class="cover-letter-editor" style="width: 100%; min-height: 300px; margin: 10px 0;">${resume.coverLetter}</textarea>
+                      <button onclick="copyToClipboard('coverLetterText')" class="copy-btn">Copy Cover Letter</button>
+                  </div>
+              ` : ''}
               ${resumeContent}`;
   
           document.getElementById('resumeTab').click();
@@ -311,12 +322,18 @@ export async function initializeJobMatching() {
       const resumeContent = await generateResumeContent(resume.profile, 'formatted');
 
       // Show resume preview with job details
+      // After saving the tailored resume
       document.getElementById('resumePreview').innerHTML = `
-            <div class="job-details" style="margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
-                <h3>Tailored for: ${resume.jobTitle || 'Untitled Position'}</h3>
-                <p><strong>Keywords:</strong> ${resume.keywords.map(k => k.word).join(', ')}</p>
-            </div>
-            ${resumeContent}`;
+          <div class="job-details" style="margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
+              <h3>Tailored for: ${jobMatch.jobTitle || 'Untitled Position'}</h3>
+              <p><strong>Keywords:</strong> ${jobMatch.keywords.map(k => k.word).join(', ')}</p>
+          </div>
+          <div class="cover-letter-section">
+              <h3>Cover Letter</h3>
+              <textarea id="coverLetterText" class="cover-letter-editor" style="width: 100%; min-height: 300px; margin: 10px 0;">${result.coverLetter}</textarea>
+              <button onclick="copyToClipboard('coverLetterText')" class="copy-btn">Copy Cover Letter</button>
+          </div>
+          ${resumeContent}`;
 
       // Switch to resume tab
       document.getElementById('resumeTab').click();
@@ -428,6 +445,11 @@ async function previewTailoredResume(index) {
             <div class="job-details" style="margin-bottom: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">
                 <h3>Tailored for: ${resume.jobTitle || 'Untitled Position'}</h3>
                 <p><strong>Keywords:</strong> ${resume.keywords.map(k => k.word).join(', ')}</p>
+            </div>
+            <div class="cover-letter-section">
+                <h3>Cover Letter</h3>
+                <textarea id="coverLetterText" class="cover-letter-editor">${resume.profile.coverLetter || ''}</textarea>
+                <button onclick="copyToClipboard('coverLetterText')" class="copy-btn">Copy Cover Letter</button>
             </div>
             ${resumeContent}`;
 
